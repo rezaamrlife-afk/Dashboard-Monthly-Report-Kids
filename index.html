@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AmericanLIFE — Kids Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F4F6FB;--navy:#07122B;--blue:#1A4FD8;--red:#C41E2E;
+  --green:#15803D;--gold:#C9921A;--purple:#6D28D9;--orange:#C2540A;
+  --white:#fff;--text:#1E2A3B;--muted:#64748B;--dim:#94A3B8;
+  --border:#E2E8F0;--card:#fff;
+}
+body{font-family:'Geist',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy);height:58px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300}
+.nav-l{display:flex;align-items:center;gap:12px}
+.logo{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--red));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+.nav-title{color:#fff;font-size:14px;font-weight:700}
+.nav-sub{color:rgba(255,255,255,0.4);font-size:10px;font-family:'JetBrains Mono',monospace}
+.nav-r{display:flex;align-items:center;gap:8px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.live-txt{font-size:10px;color:#4ADE80;font-weight:600;letter-spacing:.08em}
+.total-badge{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);border-radius:100px;padding:3px 10px;font-family:'JetBrains Mono',monospace}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 58px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--navy);display:flex;flex-direction:column;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.06)}
+.sidebar-section{padding:16px 12px 8px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.25)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-radius:8px;margin:2px 8px;transition:all .15s;color:rgba(255,255,255,0.55);font-size:13px;font-weight:500}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:#fff}
+.nav-item.active{background:rgba(255,255,255,0.1);color:#fff}
+.nav-item.active .nav-icon{opacity:1}
+.nav-icon{font-size:16px;opacity:0.6;width:20px;text-align:center}
+.nav-count{margin-left:auto;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.1);border-radius:100px;padding:2px 7px;color:rgba(255,255,255,0.5)}
+.sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:8px 16px}
+
+/* MAIN */
+.main{overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:24px;animation:fadeUp .3s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.page-head{margin-bottom:24px}
+.page-title{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted)}
+
+/* FILTER BAR */
+.filter-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.filter-label{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.filter-btn{padding:5px 12px;border-radius:100px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);transition:all .15s;font-family:'Geist',sans-serif}
+.filter-btn:hover{border-color:var(--blue);color:var(--blue)}
+.filter-btn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.filter-sep{width:1px;height:18px;background:var(--border)}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;transition:box-shadow .2s;animation:fadeUp .35s ease both}
+.kpi:hover{box-shadow:0 6px 20px rgba(0,0,0,0.07)}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.kpi-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.kpi-trend{font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;font-family:'JetBrains Mono',monospace}
+.trend-up{background:#DCFCE7;color:#15803D}
+.trend-down{background:#FEE2E2;color:#DC2626}
+.trend-neutral{background:#F1F5F9;color:var(--muted)}
+.kpi-val{font-size:32px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:3px;font-family:'JetBrains Mono',monospace}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:500}
+.kpi-bar{margin-top:12px;height:3px;background:#F1F5F9;border-radius:100px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:100px;transition:width .8s ease}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+.grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:16px}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;color:var(--navy)}
+.chip{padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.03em}
+.chip-blue{background:#DBEAFE;color:#1D4ED8}
+.chip-green{background:#DCFCE7;color:#15803D}
+.chip-red{background:#FEE2E2;color:#DC2626}
+.chip-gold{background:#FEF3C7;color:#B45309}
+.chip-purple{background:#EDE9FE;color:#6D28D9}
+.chip-navy{background:#E0E7FF;color:#1E40AF}
+.chip-teal{background:#CCFBF1;color:#0F766E}
+
+/* SKILL BAR */
+.skill-row{margin-bottom:11px}
+.skill-top{display:flex;justify-content:space-between;margin-bottom:4px}
+.skill-lbl{font-size:12px;font-weight:500;color:var(--text)}
+.skill-pct{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)}
+.skill-bar{height:6px;background:#F1F5F9;border-radius:100px;overflow:hidden}
+.skill-fill{height:100%;border-radius:100px;transition:width .8s ease}
+
+/* TEACHER */
+.teacher-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F8FAFC}
+.teacher-item:last-child{border-bottom:none}
+.t-avatar{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.t-name{font-size:13px;font-weight:600;color:var(--navy)}
+.t-meta{font-size:11px;color:var(--muted)}
+.t-score{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+
+/* SCORE */
+.score{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700}
+.score-e{background:#DCFCE7;color:#15803D}
+.score-g{background:#DBEAFE;color:#1D4ED8}
+.score-n{background:#FEE2E2;color:#DC2626}
+
+/* ALERT */
+.alert-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #F8FAFC}
+.alert-item:last-child{border-bottom:none}
+.a-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.a-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.a-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.a-tags{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:0 10px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 10px;font-size:12px;color:var(--text);border-bottom:1px solid #F8FAFC;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FAFC}
+.td-name{font-weight:600;color:var(--navy);font-size:13px}
+.td-mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.td-muted{color:var(--muted);font-size:11px}
+
+/* STUDENT PROFILE PAGE */
+.student-layout{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 58px)}
+.student-sidebar{background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.student-main{overflow-y:auto;padding:24px;background:var(--bg)}
+.s-search{padding:12px 16px;border-bottom:1px solid var(--border)}
+.s-search input{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'Geist',sans-serif;outline:none}
+.s-search input:focus{border-color:var(--blue)}
+.s-filters{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap}
+.s-list{flex:1;overflow-y:auto}
+.s-item{padding:11px 16px;cursor:pointer;border-bottom:1px solid #F8FAFC;display:flex;align-items:center;gap:10px;transition:background .12s}
+.s-item:hover{background:#F8FAFC}
+.s-item.active{background:#EFF6FF;border-left:3px solid var(--blue)}
+.s-avatar{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.s-name{font-size:13px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-meta{font-size:11px;color:var(--muted)}
+.s-stats{padding:10px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);display:flex;gap:12px}
+.ss-item{flex:1;text-align:center}
+.ss-val{font-size:16px;font-weight:800;color:var(--navy);font-family:'JetBrains Mono',monospace}
+.ss-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+
+/* PROFILE DETAIL */
+.p-head{background:linear-gradient(135deg,var(--navy) 0%,#1A3A8A 100%);border-radius:14px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.p-head::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.04)}
+.p-avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;margin-bottom:12px}
+.p-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
+.p-info{font-size:12px;color:rgba(255,255,255,0.5);display:flex;gap:12px;flex-wrap:wrap}
+.p-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.p-kpi{background:rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center}
+.p-kpi-val{font-size:18px;font-weight:800;color:#fff;font-family:'JetBrains Mono',monospace}
+.p-kpi-lbl{font-size:9px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.month-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px}
+.month-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.month-name{font-size:13px;font-weight:700;color:var(--navy)}
+
+/* SKILLS GRID - 5 academic skills */
+.skills-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.skill-mini-box{background:#F8FAFC;border-radius:8px;padding:8px 4px;text-align:center}
+.smb-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
+.smb-val{font-size:11px;font-weight:700;margin-top:3px}
+
+/* BEHAVIOR ROW - participation, concentration, homework */
+.behavior-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.behavior-box{border-radius:8px;padding:8px;display:flex;align-items:center;gap:7px;border:1px solid var(--border)}
+.beh-icon{font-size:14px}
+.beh-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
+.beh-val{font-size:11px;font-weight:700;color:var(--navy)}
+
+.comment-box{font-size:12px;color:var(--text);border-left:3px solid var(--blue);padding-left:10px;font-style:italic;line-height:1.6}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:16px;color:var(--dim)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* COMMENT */
+.comment-item{padding:11px;background:#F8FAFC;border-radius:10px;margin-bottom:7px;border-left:3px solid transparent}
+.comment-item.c-good{border-left-color:var(--green)}
+.comment-item.c-needs{border-left-color:var(--red)}
+.c-header{display:flex;justify-content:space-between;margin-bottom:3px}
+.c-name{font-size:12px;font-weight:700;color:var(--navy)}
+.c-teacher{font-size:11px;color:var(--muted)}
+.c-text{font-size:12px;color:var(--text);line-height:1.5}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap input{width:100%;padding:9px 12px 9px 34px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:'Geist',sans-serif;outline:none;background:#fff}
+.search-wrap input:focus{border-color:var(--blue)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--dim)}
+
+/* TAB */
+.tab-bar{display:flex;gap:3px;background:#F1F5F9;border-radius:10px;padding:3px;margin-bottom:14px}
+.tab{flex:1;padding:6px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;background:transparent;color:var(--muted);transition:all .15s;font-family:'Geist',sans-serif}
+.tab.active{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+
+/* REPORT PROMPT */
+.report-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:linear-gradient(135deg,#1A4FD8,#6D28D9);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:"Geist",sans-serif;margin-top:12px;transition:opacity .15s}
+.report-btn:hover{opacity:.88}
+.prompt-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+.prompt-modal.open{display:flex}
+.prompt-box{background:#fff;border-radius:16px;padding:24px;max-width:680px;width:90%;max-height:80vh;display:flex;flex-direction:column;gap:12px}
+.prompt-box-head{display:flex;justify-content:space-between;align-items:center}
+.prompt-box-title{font-size:15px;font-weight:800;color:var(--navy)}
+.prompt-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1}
+.prompt-text{flex:1;overflow-y:auto;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:11px;font-family:"JetBrains Mono",monospace;color:var(--text);line-height:1.6;white-space:pre-wrap;max-height:50vh}
+.prompt-copy-btn{padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:"Geist",sans-serif}
+.prompt-copy-btn.copied{background:#15803D}
+
+footer{text-align:center;padding:20px;font-size:11px;color:var(--dim);border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-l">
+    <div class="logo">AL</div>
+    <div>
+      <div class="nav-title">Kids Course Reports</div>
+      <div class="nav-sub">BAHÇEŞEHİR · 2025–2026</div>
+    </div>
+  </div>
+  <div class="nav-r">
+    <span class="total-badge" id="nav-total">— records</span>
+    <div class="live-dot"></div>
+    <div class="live-txt">LIVE</div>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">Main</div>
+    <div class="nav-item active" onclick="showPage('overview',this)">
+      <span class="nav-icon">📊</span> Overview
+      <span class="nav-count" id="cnt-overview">—</span>
+    </div>
+    <div class="nav-item" onclick="showPage('alerts',this)">
+      <span class="nav-icon">⚠️</span> Alerts
+      <span class="nav-count" id="cnt-alerts">—</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Students</div>
+    <div class="nav-item" onclick="showPage('profiles',this)">
+      <span class="nav-icon">👤</span> Profiles
+      <span class="nav-count" id="cnt-profiles">—</span>
+    </div>
+    <div class="nav-item" onclick="showPage('table',this)">
+      <span class="nav-icon">📋</span> All Records
+      <span class="nav-count" id="cnt-table">—</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Teachers</div>
+    <div class="nav-item" onclick="showPage('teachers',this)">
+      <span class="nav-icon">👩‍🏫</span> Teachers
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main" id="main-content">
+
+    <!-- LOADING -->
+    <div class="loading" id="loading-state">
+      <div class="spinner"></div>
+      <div style="font-size:13px;font-weight:500">Loading data from Google Sheets...</div>
+    </div>
+
+    <!-- PAGE: OVERVIEW -->
+    <div class="page" id="page-overview" style="display:none">
+      <div class="page-head">
+        <div class="page-title">Overview</div>
+        <div class="page-sub" id="overview-sub">Loading...</div>
+      </div>
+      <div class="filter-bar" id="overview-filter-bar">
+        <span class="filter-label">Month</span>
+        <button class="filter-btn active" onclick="setMonth('all',this)">All</button>
+        <span id="month-btns"></span>
+        <div class="filter-sep"></div>
+        <span class="filter-label">Group</span>
+        <button class="filter-btn active" onclick="setGroup('all',this)">All</button>
+        <span id="group-btns"></span>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi" style="animation-delay:.05s">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#EFF6FF">🎓</div><div class="kpi-trend trend-neutral" id="kpi-t1">Active</div></div>
+          <div class="kpi-val" id="kpi-total">—</div><div class="kpi-label">Total Records</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%;background:#2563EB"></div></div>
+        </div>
+        <div class="kpi" style="animation-delay:.1s">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#DCFCE7">⭐</div><div class="kpi-trend trend-up" id="kpi-t2">—</div></div>
+          <div class="kpi-val" id="kpi-exc">—</div><div class="kpi-label">Excellent</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-exc" style="background:#15803D"></div></div>
+        </div>
+        <div class="kpi" style="animation-delay:.15s">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#FEE2E2">⚠️</div><div class="kpi-trend trend-down" id="kpi-t3">—</div></div>
+          <div class="kpi-val" id="kpi-needs">—</div><div class="kpi-label">Needs Improvement</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-needs" style="background:#DC2626"></div></div>
+        </div>
+        <div class="kpi" style="animation-delay:.2s">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#FEF3C7">🏃</div><div class="kpi-trend trend-down">Alert</div></div>
+          <div class="kpi-val" id="kpi-absent">—</div><div class="kpi-label">3+ Absences</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-absent" style="background:#D97706"></div></div>
+        </div>
+        <div class="kpi" style="animation-delay:.25s">
+          <div class="kpi-top"><div class="kpi-icon" style="background:#EDE9FE">👩‍🏫</div><div class="kpi-trend trend-neutral">Active</div></div>
+          <div class="kpi-val" id="kpi-teachers">—</div><div class="kpi-label">Teachers</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%;background:#6D28D9"></div></div>
+        </div>
+      </div>
+      <div class="grid-2-1">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Monthly Progress</div><div class="chip chip-blue">Trend</div></div>
+          <div style="display:flex;gap:5px;align-items:flex-end;height:100px" id="month-chart"></div>
+          <div style="display:flex;gap:14px;margin-top:10px">
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:#15803D"></div>Excellent</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:#2563EB"></div>Good</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:#DC2626"></div>Needs Work</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Skill Breakdown</div></div>
+          <div id="skill-bars"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Group Performance</div></div>
+          <div id="group-stats"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Recent Comments</div></div>
+          <div id="comments-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: ALERTS -->
+    <div class="page" id="page-alerts" style="display:none">
+      <div class="page-head">
+        <div class="page-title">Alerts</div>
+        <div class="page-sub">Students needing attention</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Needs Improvement</div><div class="chip chip-red" id="needs-chip">—</div></div>
+          <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="Search student..." oninput="searchNeeds(this.value)"/></div>
+          <div id="needs-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Absent 3+ Times</div><div class="chip chip-gold" id="absent-chip">—</div></div>
+          <div id="absent-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: PROFILES -->
+    <div class="page" id="page-profiles" style="display:none;padding:0">
+      <div style="display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 58px)">
+        <div class="student-sidebar">
+          <div class="s-search"><input type="text" placeholder="🔍 Search student..." oninput="filterStudents(this.value)" id="student-search"/></div>
+          <div class="s-filters" id="profile-group-filters">
+            <button class="filter-btn active" style="font-size:10px" onclick="filterStudentGroup('all',this)">All</button>
+          </div>
+          <div class="s-stats">
+            <div class="ss-item"><div class="ss-val" id="s-total">—</div><div class="ss-lbl">Students</div></div>
+            <div class="ss-item"><div class="ss-val" id="s-exc">—</div><div class="ss-lbl">Excellent</div></div>
+            <div class="ss-item"><div class="ss-val" id="s-alert">—</div><div class="ss-lbl">Alerts</div></div>
+          </div>
+          <div class="s-list" id="student-list"></div>
+        </div>
+        <div style="overflow-y:auto;padding:24px;background:var(--bg)" id="profile-detail">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--dim);gap:12px">
+            <div style="font-size:40px;opacity:.3">👤</div>
+            <div style="font-size:14px;font-weight:600">Select a student</div>
+            <div style="font-size:12px;text-align:center">Choose from the list to view full profile</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: TABLE -->
+    <div class="page" id="page-table" style="display:none">
+      <div class="page-head">
+        <div class="page-title">All Records</div>
+        <div class="page-sub">Complete dataset</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="tab-bar" style="flex:1;max-width:400px">
+            <button class="tab active" onclick="setTableTab('all',this)">All</button>
+            <button class="tab" onclick="setTableTab('excellent',this)">Excellent</button>
+            <button class="tab" onclick="setTableTab('needs',this)">Needs Work</button>
+            <button class="tab" onclick="setTableTab('absent',this)">Absent</button>
+          </div>
+          <div class="chip chip-blue" id="table-count" style="margin-left:12px">—</div>
+        </div>
+        <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="Search by name, teacher, group..." oninput="searchTable(this.value)"/></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>Student</th><th>Month</th><th>Teacher</th><th>Group</th>
+              <th>Speaking</th><th>Listening</th><th>Reading</th><th>Writing</th><th>Grammar</th>
+              <th>Attend</th><th>HW</th><th>Part.</th><th>Conc.</th><th>Avg</th>
+            </tr></thead>
+            <tbody id="main-tbody"></tbody>
+          </table>
+        </div>
+        <div style="padding:10px 0;font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace" id="table-footer"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: TEACHERS -->
+    <div class="page" id="page-teachers" style="display:none">
+      <div class="page-head">
+        <div class="page-title">Teachers</div>
+        <div class="page-sub">Performance by teacher</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Teacher Rankings</div></div>
+          <div id="teacher-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Top Students</div><div class="chip chip-green">⭐ Excellent</div></div>
+          <div id="top-students"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SCORE = {"Excellent":3,"Good":2,"Needs Improvment":1,"Needs Improvement":1};
+let MONTHS = []; // built dynamically from data
+const TC = ["#1A4FD8","#C41E2E","#15803D","#C9921A","#6D28D9","#0891B2","#BE185D","#7C3AED","#B45309","#0F766E","#C2540A","#1D4ED8","#166534","#92400E"];
+const AVATAR_COLORS = ["#1A4FD8","#C41E2E","#15803D","#C9921A","#6D28D9","#0891B2","#BE185D","#7C3AED"];
+
+let RAW = [];
+let fMonth = "all", fGroup = "all", tTab = "all", tSearch = "", nSearch = "", sGroup = "all", sSearch = "";
+
+// ── LOAD DATA ──────────────────────────────────────────────────────────
+google.script.run
+  .withSuccessHandler(function(json) {
+    try {
+      const res = JSON.parse(json);
+      if (!res.success) { showError(res.error); return; }
+      RAW = res.data;
+      document.getElementById("nav-total").textContent = RAW.length + " records";
+      document.getElementById("loading-state").style.display = "none";
+      initCounts();
+      showPage("overview", document.querySelector(".nav-item.active"));
+    } catch(e) { showError(e.message); }
+  })
+  .withFailureHandler(function(e) { showError(e.message); })
+  .getKidsData();
+
+function showError(msg) {
+  document.getElementById("loading-state").innerHTML = '<div style="color:#DC2626;font-size:13px;padding:20px">Error: ' + msg + '</div>';
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────
+function showPage(id, el) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  const pg = document.getElementById("page-" + id);
+  if (pg) pg.style.display = "block";
+  if (el) el.classList.add("active");
+  if (id === "overview") renderOverview();
+  if (id === "alerts") renderAlerts();
+  if (id === "profiles") renderStudentList();
+  if (id === "table") renderTable();
+  if (id === "teachers") renderTeachers();
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────
+function avgScore(r) {
+  const vals = [r.speaking,r.listening,r.reading,r.writing,r.grammar].map(v=>SCORE[v]||0).filter(v=>v>0);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+}
+function scoreBadge(s) {
+  if (!s) return "—";
+  const c = s==="Excellent"?"score-e":s==="Good"?"score-g":"score-n";
+  const label = s.includes("Needs")?"Needs":s;
+  return '<span class="score '+c+'">'+label+'</span>';
+}
+function attendChip(a) {
+  if (!a) return "—";
+  if (a.includes("Full")) return '<span class="chip chip-green" style="font-size:9px">✓ Full</span>';
+  if (a.includes("3 or more")) return '<span class="chip chip-red" style="font-size:9px">⚠ 3+</span>';
+  return '<span class="chip chip-gold" style="font-size:9px">1-2</span>';
+}
+function behaviorChip(val, type) {
+  if (!val) return '<span style="color:var(--dim);font-size:11px">—</span>';
+  // Participation & Concentration typically: "Always", "Usually", "Sometimes", "Rarely" or similar
+  const v = val.toLowerCase();
+  if (v.includes("always") || v.includes("excellent") || v.includes("high")) {
+    return '<span class="chip chip-green" style="font-size:9px">'+val+'</span>';
+  } else if (v.includes("usually") || v.includes("good") || v.includes("often")) {
+    return '<span class="chip chip-blue" style="font-size:9px">'+val+'</span>';
+  } else if (v.includes("sometimes") || v.includes("average")) {
+    return '<span class="chip chip-gold" style="font-size:9px">'+val+'</span>';
+  } else if (v.includes("rarely") || v.includes("never") || v.includes("low")) {
+    return '<span class="chip chip-red" style="font-size:9px">'+val+'</span>';
+  }
+  return '<span class="chip" style="font-size:9px;background:#F1F5F9;color:var(--muted)">'+val+'</span>';
+}
+function avatarColor(name) { let h=0; for(let c of name) h=(h*31+c.charCodeAt(0))%AVATAR_COLORS.length; return AVATAR_COLORS[h]; }
+function getFiltered() {
+  return RAW.filter(r => {
+    if (fMonth !== "all" && r.month !== fMonth) return false;
+    if (fGroup !== "all" && r.group !== fGroup) return false;
+    return true;
+  });
+}
+
+function initCounts() {
+  const total = RAW.length;
+  const unique = new Set(RAW.map(r=>r.name)).size;
+  const alerts = RAW.filter(r=>avgScore(r)<1.7).length;
+  const absent = RAW.filter(r=>r.attendance&&r.attendance.includes("3 or more")).length;
+  document.getElementById("cnt-overview").textContent = total;
+  document.getElementById("cnt-alerts").textContent = alerts + absent;
+  document.getElementById("cnt-profiles").textContent = unique;
+  document.getElementById("cnt-table").textContent = total;
+  document.getElementById("s-total").textContent = unique;
+  buildDynamicFilters();
+}
+
+function buildDynamicFilters() {
+  // ترتیب ماه‌های سال تحصیلی
+  const MONTH_ORDER = ["October","November","December","January","February","March","April","May","June","July","August","September"];
+  const SHORT = {"October":"Oct","November":"Nov","December":"Dec","January":"Jan","February":"Feb","March":"Mar","April":"Apr","May":"May","June":"Jun","July":"Jul","August":"Aug","September":"Sep"};
+
+  // ماه‌هایی که در داده هستند
+  const foundMonths = [...new Set(RAW.map(r=>r.month).filter(Boolean))];
+  MONTHS = MONTH_ORDER.filter(m => foundMonths.includes(m));
+  // ماه‌های خارج از ترتیب رو هم اضافه کن
+  foundMonths.forEach(m => { if (!MONTHS.includes(m)) MONTHS.push(m); });
+
+  // ساخت دکمه‌های ماه
+  document.getElementById("month-btns").innerHTML = MONTHS.map(m =>
+    `<button class="filter-btn" onclick="setMonth('${m}',this)">${SHORT[m]||m}</button>`
+  ).join("");
+
+  // گروه‌هایی که در داده هستند
+  const foundGroups = [...new Set(RAW.map(r=>r.group).filter(Boolean))].sort();
+  document.getElementById("group-btns").innerHTML = foundGroups.map(g =>
+    `<button class="filter-btn" onclick="setGroup('${g}',this)">${g}</button>`
+  ).join("");
+
+  // Build profile page group filters dynamically too
+  const profileFilters = document.getElementById("profile-group-filters");
+  if (profileFilters) {
+    profileFilters.innerHTML = '<button class="filter-btn active" style="font-size:10px" onclick="filterStudentGroup(&quot;all&quot;,this)">All</button>'
+      + foundGroups.map(g => '<button class="filter-btn" style="font-size:10px" onclick="filterStudentGroup(&quot;'+g+'&quot;,this)">'+g+'</button>').join("");
+  }
+}
+
+// ── OVERVIEW ───────────────────────────────────────────────────────────
+function renderOverview() {
+  const data = getFiltered();
+  const total = data.length;
+  const exc = data.filter(r=>avgScore(r)>=2.7).length;
+  const needs = data.filter(r=>avgScore(r)<1.7).length;
+  const absent = data.filter(r=>r.attendance&&r.attendance.includes("3 or more")).length;
+  const teachers = new Set(data.map(r=>r.teacher)).size;
+
+  document.getElementById("kpi-total").textContent = total;
+  document.getElementById("kpi-exc").textContent = exc;
+  document.getElementById("kpi-needs").textContent = needs;
+  document.getElementById("kpi-absent").textContent = absent;
+  document.getElementById("kpi-teachers").textContent = teachers;
+  document.getElementById("kpi-t2").textContent = "▲ " + Math.round(exc/total*100) + "%";
+  document.getElementById("kpi-t3").textContent = "▼ " + Math.round(needs/total*100) + "%";
+  document.getElementById("bar-exc").style.width = (exc/total*100)+"%";
+  document.getElementById("bar-needs").style.width = (needs/total*100)+"%";
+  document.getElementById("bar-absent").style.width = (absent/total*100)+"%";
+  document.getElementById("overview-sub").textContent = total + " records · " + teachers + " teachers · " + new Set(data.map(r=>r.name)).size + " students";
+
+  // Month Chart
+  const months = fMonth==="all" ? MONTHS : [fMonth];
+  const maxV = Math.max(...months.map(m=>data.filter(r=>r.month===m).length),1);
+  document.getElementById("month-chart").innerHTML = months.map(m=>{
+    const md = data.filter(r=>r.month===m);
+    if(!md.length) return "";
+    const e2=md.filter(r=>avgScore(r)>=2.7).length;
+    const g2=md.filter(r=>avgScore(r)>=1.7&&avgScore(r)<2.7).length;
+    const n2=md.length-e2-g2;
+    const h=Math.round(md.length/maxV*90);
+    const he=Math.round(e2/md.length*h);
+    const hg=Math.round(g2/md.length*h);
+    const hn=h-he-hg;
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">'
+      +'<div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:90px">'
+      +'<div style="width:100%;height:'+he+'px;background:#15803D;border-radius:3px 3px 0 0;min-height:'+(e2?2:0)+'px"></div>'
+      +'<div style="width:100%;height:'+hg+'px;background:#2563EB;min-height:'+(g2?2:0)+'px"></div>'
+      +'<div style="width:100%;height:'+hn+'px;background:#DC2626;min-height:'+(n2?2:0)+'px"></div>'
+      +'</div><div style="font-size:9px;color:var(--dim);font-family:\'JetBrains Mono\',monospace">'+m.substring(0,3).toUpperCase()+'</div>'
+      +'<div style="font-size:9px;color:var(--muted);font-weight:600">'+md.length+'</div></div>';
+  }).join("");
+
+  // Skill Bars
+  const skills = [{k:"speaking",l:"Speaking"},{k:"listening",l:"Listening"},{k:"reading",l:"Reading"},{k:"writing",l:"Writing"},{k:"grammar",l:"Grammar"}];
+  document.getElementById("skill-bars").innerHTML = skills.map(s=>{
+    const vals = data.map(r=>SCORE[r[s.k]]||0).filter(v=>v>0);
+    const avg = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+    const pct = Math.round((avg/3)*100);
+    const color = pct>=80?"#15803D":pct>=60?"#2563EB":"#DC2626";
+    return '<div class="skill-row"><div class="skill-top"><span class="skill-lbl">'+s.l+'</span><span class="skill-pct">'+pct+'%</span></div>'
+      +'<div class="skill-bar"><div class="skill-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+  }).join("");
+
+  // Groups
+  const groups = ["FS","SS","MW","TT"];
+  const gColors = {"FS":"#1A4FD8","SS":"#15803D","MW":"#C9921A","TT":"#6D28D9"};
+  document.getElementById("group-stats").innerHTML = groups.map(g=>{
+    const gd = data.filter(r=>r.group===g);
+    if(!gd.length) return '<div style="padding:8px;color:var(--dim);font-size:12px">'+g+': No data</div>';
+    const avg = gd.reduce((a,r)=>a+avgScore(r),0)/gd.length;
+    const pct = Math.round((avg/3)*100);
+    const exc2 = gd.filter(r=>avgScore(r)>=2.7).length;
+    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+      +'<span style="font-size:13px;font-weight:700;color:var(--navy)">'+g+'</span>'
+      +'<span style="font-size:11px;font-family:\'JetBrains Mono\',monospace;color:'+gColors[g]+'">'+avg.toFixed(1)+' avg · '+gd.length+' records</span>'
+      +'</div><div style="height:6px;background:#F1F5F9;border-radius:100px;overflow:hidden">'
+      +'<div style="height:100%;width:'+pct+'%;background:'+gColors[g]+';border-radius:100px;transition:width .8s"></div>'
+      +'</div><div style="font-size:10px;color:var(--muted);margin-top:3px">'+exc2+' excellent of '+gd.length+'</div></div>';
+  }).join("");
+
+  // Comments
+  const recent = [...data].reverse().slice(0,6);
+  document.getElementById("comments-list").innerHTML = recent.map(r=>{
+    const a = avgScore(r);
+    const cls = a>=2.7?"c-good":a<1.7?"c-needs":"";
+    return '<div class="comment-item '+cls+'"><div class="c-header"><span class="c-name">'+r.name+'</span><span class="c-teacher">'+r.teacher.replace(" Teacher","")+" · "+r.month+'</span></div>'
+      +'<div class="c-text">'+(r.comment||"No comment")+'</div></div>';
+  }).join("");
+}
+
+function setMonth(m, btn) {
+  fMonth = m;
+  const shorts = ["All","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"];
+  document.querySelectorAll("#page-overview .filter-btn").forEach(b=>{ if(shorts.includes(b.textContent)) b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderOverview();
+}
+function setGroup(g, btn) {
+  fGroup = g;
+  document.querySelectorAll("#page-overview .filter-btn").forEach(b=>{ if(["All","FS","SS","MW","TT"].includes(b.textContent)) b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderOverview();
+}
+
+// ── ALERTS ─────────────────────────────────────────────────────────────
+function renderAlerts() {
+  const data = RAW;
+  let needs = data.filter(r=>avgScore(r)<1.7);
+  if (nSearch) needs = needs.filter(r=>r.name.toLowerCase().includes(nSearch.toLowerCase()));
+  const absent = data.filter(r=>r.attendance&&r.attendance.includes("3 or more"));
+  document.getElementById("needs-chip").textContent = needs.length + " students";
+  document.getElementById("absent-chip").textContent = absent.length + " students";
+  document.getElementById("needs-list").innerHTML = needs.slice(0,30).map(r=>
+    '<div class="alert-item"><div class="a-icon" style="background:#FEE2E2">⚠️</div>'
+    +'<div><div class="a-name">'+r.name+'</div>'
+    +'<div class="a-tags"><span class="chip chip-navy" style="font-size:9px">'+r.teacher.replace(" Teacher","")+'</span>'
+    +'<span class="chip chip-red" style="font-size:9px">'+r.group+'</span>'
+    +'<span class="chip" style="font-size:9px;background:#F1F5F9;color:var(--muted)">'+r.month+'</span></div>'
+    +'<div class="a-desc">Avg: '+avgScore(r).toFixed(1)+' · '+(r.comment||"").substring(0,60)+'</div></div></div>'
+  ).join("") || '<div style="padding:16px;text-align:center;color:var(--dim)">No alerts</div>';
+  document.getElementById("absent-list").innerHTML = absent.slice(0,30).map(r=>
+    '<div class="alert-item"><div class="a-icon" style="background:#FEF3C7">🏃</div>'
+    +'<div><div class="a-name">'+r.name+'</div>'
+    +'<div class="a-tags"><span class="chip chip-navy" style="font-size:9px">'+r.teacher.replace(" Teacher","")+'</span>'
+    +'<span class="chip chip-gold" style="font-size:9px">'+r.group+'</span>'
+    +'<span class="chip" style="font-size:9px;background:#F1F5F9;color:var(--muted)">'+r.month+'</span></div>'
+    +'<div class="a-desc">Participation: '+(r.participation||"—")+' · Concentration: '+(r.concentration||"—")+'</div></div></div>'
+  ).join("") || '<div style="padding:16px;text-align:center;color:var(--dim)">No absence alerts</div>';
+}
+function searchNeeds(q) { nSearch=q; renderAlerts(); }
+
+// ── STUDENT PROFILES ───────────────────────────────────────────────────
+let studentNames = [];
+function renderStudentList() {
+  let data = RAW;
+  if (sGroup !== "all") data = data.filter(r=>r.group===sGroup);
+  const nameMap = {};
+  data.forEach(r=>{
+    if (!nameMap[r.name]) nameMap[r.name] = {records:[],group:r.group,teacher:r.teacher};
+    nameMap[r.name].records.push(r);
+  });
+  studentNames = Object.keys(nameMap);
+  if (sSearch) studentNames = studentNames.filter(n=>n.toLowerCase().includes(sSearch.toLowerCase()));
+  studentNames.sort();
+  const excCount = studentNames.filter(n=>{ const avg=nameMap[n]?nameMap[n].records.reduce((a,r2)=>a+avgScore(r2),0)/nameMap[n].records.length:0; return avg>=2.7; }).length;
+  const alertCount = studentNames.filter(n=>{ const avg=nameMap[n]?nameMap[n].records.reduce((a,r2)=>a+avgScore(r2),0)/nameMap[n].records.length:0; return avg<1.7; }).length;
+  document.getElementById("s-total").textContent = studentNames.length;
+  document.getElementById("s-exc").textContent = excCount;
+  document.getElementById("s-alert").textContent = alertCount;
+  document.getElementById("student-list").innerHTML = studentNames.map(name=>{
+    const info = nameMap[name];
+    const avg = info.records.reduce((a,r2)=>a+avgScore(r2),0)/info.records.length;
+    const badge = avg>=2.7?'<span class="chip chip-green" style="font-size:9px">Excellent</span>':avg<1.7?'<span class="chip chip-red" style="font-size:9px">Alert</span>':'';
+    return '<div class="s-item" onclick="showProfile(\''+name.replace(/'/g,"\\'")+'\')">'
+      +'<div class="s-avatar" style="background:'+avatarColor(name)+'">'+name[0]+'</div>'
+      +'<div style="min-width:0"><div class="s-name">'+name+'</div>'
+      +'<div class="s-meta">'+info.group+' · '+info.records.length+' reports '+badge+'</div></div></div>';
+  }).join("");
+}
+function filterStudents(q) { sSearch=q; renderStudentList(); }
+function filterStudentGroup(g, btn) {
+  sGroup=g;
+  document.querySelectorAll("#page-profiles .filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderStudentList();
+}
+
+function showProfile(name) {
+  window._currentProfileName = name;
+  document.querySelectorAll(".s-item").forEach(el=>{ el.classList.toggle("active", el.querySelector(".s-name")&&el.querySelector(".s-name").textContent===name); });
+  const records = RAW.filter(r=>r.name===name);
+  if (!records.length) return;
+  const avg = records.reduce((a,r)=>a+avgScore(r),0)/records.length;
+  const bestMonth = [...records].sort((a,b)=>avgScore(b)-avgScore(a))[0];
+  const absentCount = records.filter(r=>r.attendance&&r.attendance.includes("3 or more")).length;
+  const color = avatarColor(name);
+  const avgColor = avg>=2.7?"#15803D":avg<1.7?"#DC2626":"#1A4FD8";
+
+  document.getElementById("profile-detail").innerHTML =
+    '<div class="p-head">'
+    +'<div class="p-avatar" style="background:'+color+'">'+name[0]+'</div>'
+    +'<div class="p-name">'+name+'</div>'
+    +'<div class="p-info"><span>'+records[0].group+'</span><span>'+records[0].teacher.replace(" Teacher","")+'</span><span>'+records.length+' reports</span></div>'
+    +'<div class="p-kpi-grid">'
+    +'<div class="p-kpi"><div class="p-kpi-val" style="color:'+avgColor+'">'+avg.toFixed(1)+'</div><div class="p-kpi-lbl">Avg Score</div></div>'
+    +'<div class="p-kpi"><div class="p-kpi-val">'+records.length+'</div><div class="p-kpi-lbl">Reports</div></div>'
+    +'<div class="p-kpi"><div class="p-kpi-val" style="color:'+(absentCount>0?"#DC2626":"#15803D")+'">'+absentCount+'</div><div class="p-kpi-lbl">3+ Absent</div></div>'
+    +'<div class="p-kpi"><div class="p-kpi-val">'+bestMonth.month.substring(0,3)+'</div><div class="p-kpi-lbl">Best Month</div></div>'
+    +'</div>'
+    +'<button class="report-btn" onclick="generateReportPrompt(this)">📋 Generate ChatGPT Report Prompt</button>'
+    +'</div>'
+    + records.map(r=>{
+      const a = avgScore(r);
+      const ac = a>=2.7?"#15803D":a<1.7?"#DC2626":"#1A4FD8";
+      return '<div class="month-card">'
+        // Month header
+        +'<div class="month-head"><span class="month-name">'+r.month+'</span>'
+        +'<div style="display:flex;gap:6px;align-items:center">'+attendChip(r.attendance)
+        +'<span style="font-weight:700;font-family:\'JetBrains Mono\',monospace;color:'+ac+'">'+a.toFixed(1)+'</span></div></div>'
+
+        // Academic skills (5 boxes)
+        +'<div style="font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Academic Skills</div>'
+        +'<div class="skills-mini">'
+        +["Speaking","Listening","Reading","Writing","Grammar"].map((s,i)=>{
+          const key = [r.speaking,r.listening,r.reading,r.writing,r.grammar][i];
+          const sc = key==="Excellent"?"#15803D":key==="Good"?"#1A4FD8":key?"#DC2626":"var(--dim)";
+          return '<div class="skill-mini-box"><div class="smb-lbl">'+s.substring(0,3)+'</div>'
+            +'<div class="smb-val" style="color:'+sc+'">'+(key?key.replace("Needs Improvment","Needs").replace("Needs Improvement","Needs"):"-")+'</div></div>';
+        }).join("")
+        +'</div>'
+
+        // Behavior row: Participation, Concentration, Homework
+        +'<div style="font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Behavior & Engagement</div>'
+        +'<div class="behavior-row">'
+        +'<div class="behavior-box"><span class="beh-icon">🙋</span><div><div class="beh-lbl">Participation</div><div class="beh-val">'+(r.participation||"—")+'</div></div></div>'
+        +'<div class="behavior-box"><span class="beh-icon">🎯</span><div><div class="beh-lbl">Concentration</div><div class="beh-val">'+(r.concentration||"—")+'</div></div></div>'
+        +'<div class="behavior-box"><span class="beh-icon">📚</span><div><div class="beh-lbl">Homework</div><div class="beh-val">'+(r.homework||"—")+'</div></div></div>'
+        +'</div>'
+
+        // Comment
+        +(r.comment?'<div class="comment-box">'+r.comment+'</div>':'')
+        +'</div>';
+    }).join("");
+}
+
+// ── TABLE ──────────────────────────────────────────────────────────────
+function renderTable() {
+  let data = RAW;
+  if (tTab==="excellent") data=data.filter(r=>avgScore(r)>=2.7);
+  if (tTab==="needs") data=data.filter(r=>avgScore(r)<1.7);
+  if (tTab==="absent") data=data.filter(r=>r.attendance&&r.attendance.includes("3 or more"));
+  if (tSearch) { const q=tSearch.toLowerCase(); data=data.filter(r=>r.name.toLowerCase().includes(q)||r.teacher.toLowerCase().includes(q)||r.group.toLowerCase().includes(q)||r.month.toLowerCase().includes(q)); }
+  document.getElementById("table-count").textContent = data.length + " records";
+  const show = data.slice(0,100);
+  document.getElementById("main-tbody").innerHTML = show.map(r=>{
+    const a=avgScore(r); const ac=a>=2.7?"#15803D":a<1.7?"#DC2626":"#1A4FD8";
+    return '<tr><td><div class="td-name">'+r.name+'</div></td>'
+      +'<td class="td-muted">'+r.month+'</td><td class="td-muted">'+r.teacher.replace(" Teacher","")+'</td>'
+      +'<td><span class="chip chip-blue" style="font-size:9px">'+r.group+'</span></td>'
+      +[r.speaking,r.listening,r.reading,r.writing,r.grammar].map(s=>scoreBadge(s)).map(s=>'<td>'+s+'</td>').join("")
+      +'<td>'+attendChip(r.attendance)+'</td>'
+      +'<td class="td-muted td-mono">'+(r.homework||"—")+'</td>'
+      +'<td class="td-muted td-mono">'+(r.participation||"—")+'</td>'
+      +'<td class="td-muted td-mono">'+(r.concentration||"—")+'</td>'
+      +'<td><span style="font-weight:700;color:'+ac+';font-family:\'JetBrains Mono\',monospace">'+a.toFixed(1)+'</span></td></tr>';
+  }).join("");
+  document.getElementById("table-footer").textContent = "Showing "+show.length+" of "+data.length+" records";
+}
+function setTableTab(t, btn) { tTab=t; document.querySelectorAll(".tab-bar .tab").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); renderTable(); }
+function searchTable(q) { tSearch=q; renderTable(); }
+
+// ── TEACHERS ───────────────────────────────────────────────────────────
+function renderTeachers() {
+  const data = RAW;
+  const tMap = {};
+  data.forEach(r=>{ const t=r.teacher; if(!tMap[t]) tMap[t]={total:0,sum:0}; tMap[t].total++; tMap[t].sum+=avgScore(r); });
+  const sorted = Object.entries(tMap).sort((a,b)=>(b[1].sum/b[1].total)-(a[1].sum/a[1].total));
+  document.getElementById("teacher-list").innerHTML = sorted.map(([t,v],i)=>{
+    const avg=v.sum/v.total; const pct=Math.round((avg/3)*100);
+    const color=TC[i%TC.length]; const sc=pct>=80?"#15803D":pct>=60?"#2563EB":"#DC2626";
+    return '<div class="teacher-item"><div class="t-avatar" style="background:'+color+'">'+t.split(" ")[0][0]+'</div>'
+      +'<div style="flex:1;min-width:0"><div class="t-name">'+t.replace(" Teacher","")+'</div>'
+      +'<div style="margin-top:3px;height:4px;background:#F1F5F9;border-radius:100px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:100px"></div></div>'
+      +'<div class="t-meta">'+v.total+' records</div></div>'
+      +'<div class="t-score" style="color:'+sc+'">'+avg.toFixed(1)+'</div></div>';
+  }).join("");
+  const top = data.filter(r=>avgScore(r)>=2.9).slice(0,15);
+  document.getElementById("top-students").innerHTML = top.map(r=>'<div class="teacher-item">'
+    +'<div class="t-avatar" style="background:linear-gradient(135deg,#15803D,#0F766E);font-size:11px">'+r.name[0]+'</div>'
+    +'<div style="flex:1;min-width:0"><div class="t-name" style="font-size:12px">'+r.name+'</div>'
+    +'<div class="t-meta">'+r.teacher.replace(" Teacher","")+" · "+r.group+" · "+r.month+'</div></div>'
+    +'<span class="score score-e">⭐</span></div>'
+  ).join("") || '<div style="padding:16px;text-align:center;color:var(--dim)">No data</div>';
+}
+
+// ── REPORT PROMPT GENERATOR ────────────────────────────────────────────
+function generateReportPrompt(btn) {
+  const name = window._currentProfileName;
+  const records = RAW.filter(r=>r.name===name);
+  if (!records.length) return;
+
+  // Sort by month order
+  const MONTH_ORDER = ["October","November","December","January","February","March","April","May","June","July","August","September"];
+  records.sort((a,b)=>MONTH_ORDER.indexOf(a.month)-MONTH_ORDER.indexOf(b.month));
+
+  const group = records[0].group;
+  const teacher = records[0].teacher.replace(" Teacher","");
+  const totalMonths = records.length;
+  const avgOverall = (records.reduce((a,r)=>a+avgScore(r),0)/records.length).toFixed(2);
+
+  // Build monthly data table
+  let monthlyData = "";
+  records.forEach(r => {
+    monthlyData += `
+📅 ${r.month}:
+  Speaking: ${r.speaking||"-"} | Listening: ${r.listening||"-"} | Reading: ${r.reading||"-"} | Writing: ${r.writing||"-"} | Grammar: ${r.grammar||"-"}
+  Attendance: ${r.attendance||"-"} | Homework: ${r.homework||"-"} | Participation: ${r.participation||"-"} | Concentration: ${r.concentration||"-"}
+  Teacher Comment: "${r.comment||"-"}"`;
+  });
+
+  const prompt = `You are a professional ELT (English Language Teaching) report writer for a private language school called AmericanLIFE in Bahçeşehir, Istanbul.
+
+Your task is to write a COMPLETE, BILINGUAL (English + Turkish) student progress report for the END OF YEAR.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STUDENT DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Student Name: ${name}
+Class Group: ${group}
+Teacher(s): ${teacher}
+Academic Year: 2025–2026
+Total Reports: ${totalMonths} months
+Overall Average Score: ${avgOverall}/3.0
+
+MONTHLY PERFORMANCE DATA:
+${monthlyData}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPORT FORMAT (follow exactly)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📘 STUDENT PROGRESS REPORT (2025–2026)
+📘 ÖĞRENCİ GELİŞİM RAPORU (2025–2026)
+
+👤 Student / Öğrenci: [name]
+🏫 Class / Sınıf: [group]
+👩‍🏫 Teacher / Öğretmen: [teacher]
+
+🌟 OVERALL PERFORMANCE SUMMARY / GENEL PERFORMANS
+[3-4 sentences in English analyzing overall progress across all months]
+[Same in Turkish]
+
+✔ Strengths / Güçlü Yönler: [based on data]
+✔ Weaknesses / Zayıf Yönler: [based on data]
+🎯 Behavior / Davranış: [based on participation + concentration data]
+
+📈 SKILL DEVELOPMENT ANALYSIS / BECERİ GELİŞİMİ
+[For each skill: Speaking, Listening, Reading, Writing, Grammar]
+[Show progress trend across months, strengths, areas to improve]
+[Bilingual for each skill]
+
+📊 PROGRESS TREND / GELİŞİM TRENDİ
+[Show each month with star rating ⭐⭐⭐⭐⭐]
+[Overall trend: improving / stable / needs attention]
+
+🏫 CLASSROOM BEHAVIOR / SINIF DAVRANIŞI
+[Attendance summary across all months]
+[Participation and concentration analysis]
+
+💬 TEACHER INSIGHT / ÖĞRETMEN GÖRÜŞÜ
+[2-3 professional, personalized sentences based on teacher comments]
+[Bilingual]
+
+🎯 RECOMMENDED GOALS / HEDEFLER
+[5 specific, actionable goals based on weaknesses in data]
+[Bilingual]
+
+🏅 FINAL EVALUATION / GENEL DEĞERLENDİRME
+[Overall level: Excellent / Good / Developing]
+[Potential, Consistency, Focus Required]
+
+🌈 MOTIVATION MESSAGE / MOTİVASYON MESAJI
+[3 motivational lines personalized for this student]
+[Bilingual]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPORTANT RULES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Be SPECIFIC — use actual data from monthly records, not generic statements
+2. Show PROGRESS TREND — compare early months vs recent months
+3. Be PROFESSIONAL — suitable for parents to read
+4. Be BILINGUAL — every section in English AND Turkish
+5. Be HONEST but CONSTRUCTIVE — mention weaknesses with solutions
+6. DO NOT copy teacher comments word for word — analyze and paraphrase
+7. Reference specific months when noting improvements or declines`;
+
+  document.getElementById("prompt-text").textContent = prompt;
+  document.getElementById("prompt-modal").classList.add("open");
+  document.getElementById("copy-btn").textContent = "📋 Copy Prompt";
+  document.getElementById("copy-btn").classList.remove("copied");
+}
+
+function closePrompt() {
+  document.getElementById("prompt-modal").classList.remove("open");
+}
+
+function copyPrompt() {
+  const text = document.getElementById("prompt-text").textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById("copy-btn");
+    btn.textContent = "✅ Copied!";
+    btn.classList.add("copied");
+    setTimeout(()=>{ btn.textContent="📋 Copy Prompt"; btn.classList.remove("copied"); }, 2500);
+  });
+}
+
+</script>
+
+<!-- REPORT PROMPT MODAL -->
+<div class="prompt-modal" id="prompt-modal" onclick="if(event.target===this)closePrompt()">
+  <div class="prompt-box">
+    <div class="prompt-box-head">
+      <div class="prompt-box-title">📋 ChatGPT Report Prompt</div>
+      <button class="prompt-close" onclick="closePrompt()">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted)">این prompt رو کپی کن و در ChatGPT paste کن تا گزارش کامل بسازه.</div>
+    <div class="prompt-text" id="prompt-text"></div>
+    <button class="prompt-copy-btn" id="copy-btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+  </div>
+</div>
+
+</body>
+</html>
